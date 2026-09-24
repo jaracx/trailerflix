@@ -1,0 +1,25 @@
+[
+  {
+    "id": 1,
+    "titulo": "Back to the Future",
+    "categoria": "Película",
+    "gen": "Ciencia Ficción",
+    "reparto": "Michael J. Fox, Christopher Lloyd",
+    "trailer": "https://www.youtube.com/watch?v=qvsgGtivCgs"
+  },
+  {
+    "id": 2,
+    "titulo": "Stranger Things",
+    "categoria": "Serie",
+    "gen": "Fantasía",
+    "reparto": "Millie Bobby Brown, Finn Wolfhard",
+    "trailer": "https://www.youtube.com/watch?v=b9EkMc79ZSU"
+  },
+  {
+    "id": 3,
+    "titulo": "Avengers: Endgame",
+    "categoria": "Película",
+    "gen": "Acción",
+    "reparto": "Robert Downey Jr., Chris Evans"
+  }
+]
