@@ -153,7 +153,7 @@ Este proyecto es ideal para practicar con Git y GitHub:
 ## Autores
 
 - Franco Jara
-- Candela
+- Candela Barros
 
 ## Licencia
 
