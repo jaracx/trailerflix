@@ -152,8 +152,8 @@ Este proyecto es ideal para practicar con Git y GitHub:
 
 ## Autores
 
-- [Tu nombre]
-- [Nombre de tu compañera]
+- Franco Jara
+- Candela
 
 ## Licencia
 
