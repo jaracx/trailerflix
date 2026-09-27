@@ -31,20 +31,45 @@ app.get('/', (req, res) => {
 
 // 1. GET /catalogo -> Obtener todo el catálogo
 app.get('/catalogo', async (req, res) => {
-  // TODO: Implementar por Integrante 1
-  res.status(501).json({ mensaje: 'Pendiente de implementación' });
+  try {
+    const catalogo = await obtenerTrailerflix();
+    res.json(catalogo);
+  } catch (err) {
+    res.status(500).json({ error: 'no se pudo leer la base de datos' });
+  }
 });
 
 // 2. GET /titulo/:title -> Búsqueda parcial por título
 app.get('/titulo/:title', async (req, res) => {
-  // TODO: Implementar por Integrante 1
-  res.status(501).json({ mensaje: 'Pendiente de implementación' });
+  try {
+    const catalogo = await obtenerTrailerflix();
+    // convertimos la busqueda en minusculas
+    const busqueda = req.params.title.toLowerCase();
+    // filtramos el catalogo comparando la busqueda con el titulo de cada item en minusculas
+    const resultados = catalogo.filter(item => item.titulo.toLowerCase().includes(busqueda));
+    
+    if (resultados.length === 0) {
+      return res.status(404).json({ mensaje: 'No se encontraron resultados para el título proporcionado' });
+    }
+    res.json(resultados);
+  } catch (err) {
+    res.status(500).json({ error: 'no se pudo leer la base de datos' });
+  }
 });
 
 // 3. GET /categoria/:cat -> Filtrar por categoría (Serie/Película)
 app.get('/categoria/:cat', async (req, res) => {
-  // TODO: Implementar por Integrante 1
-  res.status(501).json({ mensaje: 'Pendiente de implementación' });
+  try {
+    const catalogo = await obtenerTrailerflix();
+    const busqueda = req.params.cat.toLowerCase();
+    const resultados = catalogo.filter(item => item.categoria.toLowerCase() === busqueda);
+    if (resultados.length === 0) {
+      return res.status(404).json({ mensaje: 'No se encontraron resultados para la categoría proporcionada' });
+    }
+    res.json(resultados);
+  } catch (err) {
+    res.status(500).json({ error: 'no se pudo leer la base de datos' });
+  }
 });
 
 // =======================================================
