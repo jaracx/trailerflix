@@ -57,35 +57,85 @@ app.get('/titulo/:title', async (req, res) => {
   }
 });
 
-// 3. GET /categoria/:cat -> Filtrar por categoría (Serie/Película)
+// 3. GET /categoria/:cat -> Filtrar por categoría (Serie o Película)
 app.get('/categoria/:cat', async (req, res) => {
-  try {
-    const catalogo = await obtenerTrailerflix();
-    const busqueda = req.params.cat.toLowerCase();
-    const resultados = catalogo.filter(item => item.categoria.toLowerCase() === busqueda);
-    if (resultados.length === 0) {
-      return res.status(404).json({ mensaje: 'No se encontraron resultados para la categoría proporcionada' });
+    try {
+        const { cat } = req.params;
+        const catalogo = await obtenerTrailerflix();
+        
+        // Normalizamos quitando tildes y pasando a minúsculas
+        const busqueda = cat.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+        const resultados = catalogo.filter(item => {
+            if (!item.categoria) return false;
+            const categoriaNormalizada = item.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            return categoriaNormalizada.includes(busqueda);
+        });
+
+        if (!resultados.length) {
+            return res.status(404).json({ error: 'No se encontró ninguna categoría coincidente' });
+        }
+
+        res.json(resultados);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al filtrar por categoría' });
     }
-    res.json(resultados);
-  } catch (err) {
-    res.status(500).json({ error: 'no se pudo leer la base de datos' });
-  }
 });
 
 // =======================================================
 // PARTE 2: RUTAS A DESARROLLAR (Integrante 2)
 // =======================================================
 
-// 4. GET /reparto/:act -> Filtrar por actor/actriz
+
+// 4. GET /reparto/:act -> Filtrar por actor/actriz (devuelve solo titulo y reparto)
 app.get('/reparto/:act', async (req, res) => {
-  // TODO: Implementar por Integrante 2
-  res.status(501).json({ mensaje: 'Pendiente de implementación' });
+    try {
+        const { act } = req.params;
+        const catalogo = await obtenerTrailerflix();
+        const resultados = catalogo.filter(item => 
+            item.reparto && item.reparto.toLowerCase().includes(act.toLowerCase())
+        );
+
+        if (!resultados.length) {
+            return res.status(404).json({ error: 'No se encontró ningún actor o actriz coincidente' });
+        }
+
+        // Retorna únicamente un array con "titulo" y "reparto"
+        const respuesta = resultados.map(item => ({
+            titulo: item.titulo,
+            reparto: item.reparto
+        }));
+
+        res.json(respuesta);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al filtrar por reparto' });
+    }
 });
 
-// 5. GET /trailer/:id -> Obtener tráiler por ID
+// 5. GET /trailer/:id -> Obtener tráiler con operador condicional
 app.get('/trailer/:id', async (req, res) => {
-  // TODO: Implementar por Integrante 2
-  res.status(501).json({ mensaje: 'Pendiente de implementación' });
+    try {
+        const idParam = parseInt(req.params.id) || req.params.id;
+        const catalogo = await obtenerTrailerflix();
+        const item = catalogo.find(e => e.id === idParam || e.codigo === idParam);
+
+        if (!item) {
+            return res.status(404).json({ error: 'No se encontró un contenido con ese ID o código' });
+        }
+
+        // Acceso condicional al tráiler según consigna
+        if (!item?.trailer) {
+            return res.status(404).json({ error: 'El contenido solicitado no posee un tráiler disponible' });
+        }
+
+        res.json({
+            id: item.id || item.codigo,
+            titulo: item.titulo,
+            trailer: item.trailer
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al buscar el tráiler' });
+    }
 });
 
 // =======================================================
