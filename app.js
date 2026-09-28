@@ -4,12 +4,15 @@ const fs = require('fs/promises');
 const path = require('path');
 const connectDB = require('./src/config/db');
 const movieRoutes = require('./src/routes/movieRoutes');
+const authRoutes = require('./src/routes/authRoutes');
+const authMiddleware = require('./src/middleware/authMiddleware');
 
 const app = express();
 app.use(express.json());
 
 connectDB();
-app.use('/peliculas', movieRoutes);
+app.use('/auth', authRoutes);
+app.use('/peliculas', authMiddleware, movieRoutes);
 
 const PORT = process.env.PORT || 3008;
 const BD_PATH = path.join(__dirname, process.env.DATABASE_PATH || 'database/trailerflix.json');
