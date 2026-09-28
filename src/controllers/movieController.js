@@ -9,6 +9,21 @@ const getMovies = async (req, res) => {
   }
 };
 
+const getMovieById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const movie = await Movie.findById(id);
+
+    if (!movie) {
+      return res.status(404).json({ message: 'Película no encontrada' });
+    }
+
+    res.json(movie);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al buscar la película', error: error.message });
+  }
+};
+
 const createMovie = async (req, res) => {
   try {
     const { titulo, categoria, genero, reparto, trailer } = req.body;
@@ -30,7 +45,51 @@ const createMovie = async (req, res) => {
   }
 };
 
+const updateMovie = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const datos = req.body;
+
+    const movieActualizada = await Movie.findByIdAndUpdate(id, datos, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!movieActualizada) {
+      return res.status(404).json({ message: 'Película no encontrada para actualizar' });
+    }
+
+    res.json({
+      message: 'Película actualizada correctamente',
+      movie: movieActualizada
+    });
+  } catch (error) {
+    res.status(400).json({ message: 'Error al actualizar la película', error: error.message });
+  }
+};
+
+const deleteMovie = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const movieEliminada = await Movie.findByIdAndDelete(id);
+
+    if (!movieEliminada) {
+      return res.status(404).json({ message: 'Película no encontrada para eliminar' });
+    }
+
+    res.json({
+      message: 'Película eliminada correctamente',
+      movie: movieEliminada
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar la película', error: error.message });
+  }
+};
+
 module.exports = {
   getMovies,
-  createMovie
+  getMovieById,
+  createMovie,
+  updateMovie,
+  deleteMovie
 };
