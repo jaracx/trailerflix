@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { validateRegisterInput, validateLoginInput } = require('../services/authValidation');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'trailerflix_secret_dev';
 
@@ -18,18 +19,26 @@ const generateToken = (user) => {
 const register = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
+    const validation = validateRegisterInput({ nombre, email, password });
 
-    if (!nombre || !email || !password) {
-      return res.status(400).json({ message: 'Nombre, email y contraseña son obligatorios' });
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
     }
 
-    const usuarioExistente = await User.findOne({ email });
+    const cleanedNombre = String(nombre).trim();
+    const cleanedEmail = String(email).trim().toLowerCase();
+
+    const usuarioExistente = await User.findOne({ email: cleanedEmail });
 
     if (usuarioExistente) {
       return res.status(409).json({ message: 'Ya existe un usuario con ese email' });
     }
 
-    const nuevoUsuario = await User.create({ nombre, email, password });
+    const nuevoUsuario = await User.create({
+      nombre: cleanedNombre,
+      email: cleanedEmail,
+      password
+    });
 
     const token = generateToken(nuevoUsuario);
 
@@ -51,12 +60,14 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const validation = validateLoginInput({ email, password });
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email y contraseña son obligatorios' });
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
     }
 
-    const usuario = await User.findOne({ email });
+    const cleanedEmail = String(email).trim().toLowerCase();
+    const usuario = await User.findOne({ email: cleanedEmail });
 
     if (!usuario) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
@@ -85,7 +96,29 @@ const login = async (req, res) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const usuario = req.user;
+
+    if (!usuario) {
+      return res.status(401).json({ message: 'Usuario no autenticado' });
+    }
+
+    return res.json({
+      user: {
+        id: usuario._id,
+        nombre: usuario.nombre,
+        email: usuario.email
+      }
+    });
+  } catch (error) {
+    console.error('Error al obtener perfil:', error.message);
+    return res.status(500).json({ message: 'Error al obtener perfil', error: error.message });
+  }
+};
+
 module.exports = {
   register,
-  login
+  login,
+  getProfile
 };
