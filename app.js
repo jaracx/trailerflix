@@ -7,6 +7,7 @@ const movieRoutes = require('./src/routes/movieRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const authMiddleware = require('./src/middleware/authMiddleware');
 const { paginateCatalog, normalizeText } = require('./src/services/catalogService');
+const { handleError } = require('./src/services/errorHandler');
 
 const app = express();
 app.use(express.json());
@@ -152,12 +153,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
 });
 
-app.use((err, req, res, next) => {
-  console.error('Error global:', err.message);
-  res.status(err.status || 500).json({
-    error: err.message || 'Error interno del servidor'
-  });
-});
+app.use(handleError);
 
 app.listen(PORT, () => {
   console.log(`Servidor de Trailerflix corriendo en http://localhost:${PORT}`);
