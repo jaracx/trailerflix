@@ -12,7 +12,10 @@ const { handleError } = require('./src/services/errorHandler');
 const app = express();
 app.use(express.json());
 
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
+
 app.use('/auth', authRoutes);
 app.use('/peliculas', authMiddleware, movieRoutes);
 
@@ -155,6 +158,10 @@ app.use((req, res) => {
 
 app.use(handleError);
 
-app.listen(PORT, () => {
-  console.log(`Servidor de Trailerflix corriendo en http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Servidor de Trailerflix corriendo en http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
