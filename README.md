@@ -1,21 +1,17 @@
 # Trailerflix API
 
-API REST para gestionar contenido multimedia con autenticación JWT, MongoDB y Express.
+Este proyecto nació como una API de catálogo y fue evolucionando hacia un backend más serio con autenticación, validaciones, estructura modular y pruebas reales. Es un proyecto de aprendizaje y también una base sólida para portfolio.
 
-## Descripción
+## Objetivo del proyecto
 
-Este proyecto permite:
+- entender cómo funciona una API REST en Node.js
+- aprender Express y Mongoose
+- practicar autenticación con JWT
+- separar responsabilidades por capas
+- desarrollar un backend con una base más profesional
+- dejar un historial de commits para estudiar el proceso de crecimiento del proyecto
 
-- consultar catálogo paginado
-- buscar contenido por título
-- filtrar por categoría
-- buscar por actor o actriz
-- obtener el trailer asociado
-- registrar e iniciar sesión con JWT
-- proteger rutas privadas con middleware
-- gestionar películas con CRUD
-
-## Tecnologías
+## Stack principal
 
 - Node.js
 - Express
@@ -24,6 +20,7 @@ Este proyecto permite:
 - JWT
 - bcryptjs
 - dotenv
+- JavaScript
 
 ## Estructura del proyecto
 
@@ -41,15 +38,42 @@ trailerfix/
 │   ├── controllers/
 │   ├── middleware/
 │   ├── models/
-│   └── routes/
-└── notes/
+│   ├── routes/
+│   └── services/
+├── tests/
+├── notes/
+└── .env
 ```
 
-## Requisitos
+## ¿Qué aprendimos en este proyecto?
 
-- Node.js 18+
-- MongoDB en ejecución local o Atlas
-- npm
+### 1. Cómo arrancar una API con Express
+Se aprendió a crear un servidor, levantar rutas, manejar JSON y responder según el contexto de la petición.
+
+### 2. Cómo organizar un backend
+La estructura se fue separando en:
+- routes: define endpoints
+- controllers: lógica de negocio
+- models: esquema y validaciones con Mongoose
+- middleware: autenticación y protección de rutas
+- services: validaciones y helpers reutilizables
+
+### 3. Qué es Mongoose
+Mongoose es una librería que conecta Node con MongoDB y te ayuda a definir modelos, validaciones y consultas. En lugar de trabajar directamente con Mongo sin estructura, Mongoose te da una capa más ordenada.
+
+### 4. Qué es JWT
+JWT significa JSON Web Token. Es una forma de generar un token que identifica a un usuario y que puede enviarse en cada request para saber si está autenticado.
+
+### 5. Por qué separar validaciones
+Cuando una API crece, no conviene mezclar todo en un mismo archivo. Las validaciones se vuelven más claras, reutilizables y fáciles de testear si se separan en servicios.
+
+### 6. Por qué testear flujo real
+No alcanza con validar funciones sueltas. Lo importante es probar el flujo real de la app:
+- registrar usuario
+- hacer login
+- usar token en una ruta protegida
+- crear una película
+- actualizarla y eliminarla
 
 ## Instalación
 
@@ -58,7 +82,7 @@ npm install
 cp .env.example .env
 ```
 
-Completar `.env` con tus valores reales:
+Configura tu archivo `.env` con algo así:
 
 ```env
 PORT=3008
@@ -73,30 +97,18 @@ DATABASE_PATH=database/trailerflix.json
 node app.js
 ```
 
-La API quedará disponible en:
+La API queda disponible en:
 
 ```bash
 http://localhost:3008
 ```
 
-## Arquitectura del proyecto
-
-- `app.js`: arranque del servidor y rutas públicas
-- `src/routes/`: endpoints HTTP
-- `src/controllers/`: lógica de negocio
-- `src/models/`: esquemas de MongoDB con Mongoose
-- `src/middleware/`: autenticación y protección de rutas
-- `src/services/`: validaciones y helpers reutilizables
-- `src/config/db.js`: conexión a MongoDB
-
-## Endpoints
-
-## Endpoints
+## Endpoints principales
 
 ### Auth
 
 #### POST /auth/register
-Registra un usuario nuevo.
+Registra un usuario.
 
 ```json
 {
@@ -107,7 +119,7 @@ Registra un usuario nuevo.
 ```
 
 #### POST /auth/login
-Inicia sesión y devuelve un token JWT.
+Hace login y devuelve un token JWT.
 
 ```json
 {
@@ -125,25 +137,13 @@ Headers:
 Authorization: Bearer <token>
 ```
 
-Ejemplo de respuesta:
-
-```json
-{
-  "user": {
-    "id": "64a...",
-    "nombre": "Ana",
-    "email": "ana@mail.com"
-  }
-}
-```
-
 ### Películas
 
 #### GET /peliculas
-Devuelve las películas protegidas por autenticación.
+Lista películas protegidas.
 
 #### GET /peliculas/:id
-Devuelve una película por ID.
+Obtiene una película por ID.
 
 #### POST /peliculas
 Crea una nueva película.
@@ -154,13 +154,10 @@ Actualiza una película.
 #### DELETE /peliculas/:id
 Elimina una película.
 
+### Catálogo
+
 #### GET /catalogo?page=1&limit=10
 Devuelve el catálogo paginado.
-
-### Endpoints legacy del proyecto base
-
-#### GET /
-Muestra mensaje de bienvenida.
 
 #### GET /titulo/:title
 Busca por título.
@@ -172,45 +169,72 @@ Busca por categoría.
 Busca por actor o actriz.
 
 #### GET /trailer/:id
-Devuelve el trailer de un contenido por ID.
+Devuelve el trailer asociado a un contenido.
 
-## Seguridad
+## Flujo de desarrollo que seguimos
 
-- Contraseñas encriptadas con bcryptjs
-- JWT para autenticación
-- rutas protegidas con middleware
-- secretos almacenados en `.env`
-- archivo `.env.example` como plantilla
+Este proyecto no se construyó “todo de una”. Se fue avanzando por etapas, y eso es muy útil para aprender:
 
-## Testing recomendado
+1. iniciar proyecto base
+2. crear estructura de carpetas
+3. conectar MongoDB con Mongoose
+4. crear usuario y autenticación
+5. proteger rutas con middleware
+6. crear CRUD de películas
+7. centralizar validaciones
+8. agregar tests unitarios y de flujo real
+9. dejar un historial de commits claro para estudiar más tarde
 
-Usar Postman, Thunder Client o Insomnia para probar:
+## Testing
 
-- registro válido
-- login válido e inválido
-- acceso con token correcto/incorrecto
-- creación de película
-- actualización y eliminación
+Se usa Node test para validar:
+- validación de email y contraseña
 - paginación del catálogo
+- sanitización de datos
+- flujo completo de registro/login/perfil
+- flujo protegido de películas
 
-## GitHub y ramas
+Ejemplo:
 
-El proyecto se trabaja en la rama `backend-pro` como proyecto profesional y de aprendizaje, mientras la rama `main` puede seguir el uso académico de la materia.
+```bash
+npm test
+```
 
-## Estado del proyecto
+## Git y ramas
+
+La rama principal de trabajo del proyecto es:
+
+```bash
+backend-pro
+```
+
+Esto permite que `main` siga siendo la rama de entrega académica y que `backend-pro` sea la rama de aprendizaje profesional y crecimiento técnico.
+
+## Estado actual del proyecto
 
 El backend ya tiene una base sólida para seguir creciendo con:
 - autenticación JWT
+- conexión a MongoDB con Mongoose
 - validaciones por capa
-- seguridad básica
-- estructura orientada a backend profesional
-- documentación clara para uso y aprendizaje
-- testing profesional con Node test
+- rutas protegidas
+- organización por arquitectura básica
+- testing real con Node
+- historial de desarrollo legible para estudiar más tarde
 
-## Siguientes mejoras recomendadas
+## Siguientes pasos recomendados
 
-- tests de integración para auth y movies
 - roles de usuario
 - paginación real sobre MongoDB
+- manejo más específico de errores
 - deploy con entorno de producción
-- documentación de Postman/Insomnia
+- mejoras de documentación para portfolio
+
+## Reflexión personal
+
+Este proyecto es una etapa de aprendizaje muy valiosa: no solo aprendés a “hacer endpoints”, sino a pensar cómo funciona un backend real, cómo se organiza, cómo se valida y cómo se documenta.
+
+Más importante aún: cada commit deja evidencia de cómo se fue construyendo la aplicación, y eso te va a permitir estudiar el proceso en cualquier momento.
+
+## Créditos
+
+Proyecto desarrollado como práctica de aprendizaje backend con enfoque profesional.
