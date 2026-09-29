@@ -6,6 +6,7 @@ const connectDB = require('./src/config/db');
 const movieRoutes = require('./src/routes/movieRoutes');
 const authRoutes = require('./src/routes/authRoutes');
 const authMiddleware = require('./src/middleware/authMiddleware');
+const { paginateCatalog, normalizeText } = require('./src/services/catalogService');
 
 const app = express();
 app.use(express.json());
@@ -41,20 +42,9 @@ app.get('/', (req, res) => {
 app.get('/catalogo', async (req, res, next) => {
   try {
     const catalogo = await obtenerTrailerflix();
-    const page = Math.max(1, Number(req.query.page) || 1);
-    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
-    const total = catalogo.length;
-    const totalPages = Math.max(1, Math.ceil(total / limit));
-    const startIndex = (page - 1) * limit;
-    const paginatedItems = catalogo.slice(startIndex, startIndex + limit);
+    const result = paginateCatalog(catalogo, req.query.page, req.query.limit);
 
-    res.json({
-      page,
-      limit,
-      total,
-      totalPages,
-      data: paginatedItems
-    });
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -64,11 +54,9 @@ app.get('/catalogo', async (req, res, next) => {
 app.get('/titulo/:title', async (req, res, next) => {
   try {
     const catalogo = await obtenerTrailerflix();
-    // convertimos la busqueda en minusculas
-    const busqueda = req.params.title.toLowerCase();
-    // filtramos el catalogo comparando la busqueda con el titulo de cada item en minusculas
-    const resultados = catalogo.filter(item => item.titulo.toLowerCase().includes(busqueda));
-    
+    const busqueda = normalizeText(req.params.title);
+    const resultados = catalogo.filter(item => normalizeText(item.titulo).includes(busqueda));
+
     if (resultados.length === 0) {
       return res.status(404).json({ mensaje: 'No se encontraron resultados para el título proporcionado' });
     }
@@ -83,14 +71,11 @@ app.get('/categoria/:cat', async (req, res, next) => {
     try {
         const { cat } = req.params;
         const catalogo = await obtenerTrailerflix();
-        
-        // Normalizamos quitando tildes y pasando a minúsculas
-        const busqueda = cat.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const busqueda = normalizeText(cat);
 
         const resultados = catalogo.filter(item => {
             if (!item.categoria) return false;
-            const categoriaNormalizada = item.categoria.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-            return categoriaNormalizada.includes(busqueda);
+            return normalizeText(item.categoria).includes(busqueda);
         });
 
         if (!resultados.length) {
@@ -113,15 +98,15 @@ app.get('/reparto/:act', async (req, res, next) => {
     try {
         const { act } = req.params;
         const catalogo = await obtenerTrailerflix();
-        const resultados = catalogo.filter(item => 
-            item.reparto && item.reparto.toLowerCase().includes(act.toLowerCase())
+        const busqueda = normalizeText(act);
+        const resultados = catalogo.filter(item =>
+            item.reparto && normalizeText(item.reparto).includes(busqueda)
         );
 
         if (!resultados.length) {
             return res.status(404).json({ error: 'No se encontró ningún actor o actriz coincidente' });
         }
 
-        // Retorna únicamente un array con "titulo" y "reparto"
         const respuesta = resultados.map(item => ({
             titulo: item.titulo,
             reparto: item.reparto
