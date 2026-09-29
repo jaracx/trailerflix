@@ -14,6 +14,11 @@ function titleCasePhrase(value = '') {
     .filter(Boolean)
     .map((word, index, words) => {
       const normalized = word.toLowerCase();
+
+      if (/^[ivxlcdm]+$/i.test(word)) {
+        return word.toUpperCase();
+      }
+
       const shouldKeepLower = smallWords.has(normalized) && index !== 0 && index !== words.length - 1;
       return shouldKeepLower ? normalized : normalized.charAt(0).toUpperCase() + normalized.slice(1);
     })
