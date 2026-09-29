@@ -62,8 +62,9 @@ Completar `.env` con tus valores reales:
 
 ```env
 PORT=3008
-DATABASE_PATH=database/trailerflix.json
+MONGODB_URI=mongodb://127.0.0.1:27017/trailerflix
 JWT_SECRET=tu_clave_secreta
+DATABASE_PATH=database/trailerflix.json
 ```
 
 ## Ejecución
@@ -77,6 +78,18 @@ La API quedará disponible en:
 ```bash
 http://localhost:3008
 ```
+
+## Arquitectura del proyecto
+
+- `app.js`: arranque del servidor y rutas públicas
+- `src/routes/`: endpoints HTTP
+- `src/controllers/`: lógica de negocio
+- `src/models/`: esquemas de MongoDB con Mongoose
+- `src/middleware/`: autenticación y protección de rutas
+- `src/services/`: validaciones y helpers reutilizables
+- `src/config/db.js`: conexión a MongoDB
+
+## Endpoints
 
 ## Endpoints
 
@@ -110,6 +123,18 @@ Headers:
 
 ```http
 Authorization: Bearer <token>
+```
+
+Ejemplo de respuesta:
+
+```json
+{
+  "user": {
+    "id": "64a...",
+    "nombre": "Ana",
+    "email": "ana@mail.com"
+  }
+}
 ```
 
 ### Películas
@@ -175,9 +200,17 @@ El proyecto se trabaja en la rama `backend-pro` como proyecto profesional y de a
 ## Estado del proyecto
 
 El backend ya tiene una base sólida para seguir creciendo con:
-- autenticación
-- validaciones
-- seguridad
-- mejores prácticas
-- documentación clara
-- testing profesional
+- autenticación JWT
+- validaciones por capa
+- seguridad básica
+- estructura orientada a backend profesional
+- documentación clara para uso y aprendizaje
+- testing profesional con Node test
+
+## Siguientes mejoras recomendadas
+
+- tests de integración para auth y movies
+- roles de usuario
+- paginación real sobre MongoDB
+- deploy con entorno de producción
+- documentación de Postman/Insomnia
