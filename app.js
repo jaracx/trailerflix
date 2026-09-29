@@ -37,18 +37,31 @@ app.get('/', (req, res) => {
 // PARTE 1: RUTAS A DESARROLLAR (Integrante 1)
 // =======================================================
 
-// 1. GET /catalogo -> Obtener todo el catálogo
-app.get('/catalogo', async (req, res) => {
+// 1. GET /catalogo -> Obtener catalogo paginado
+app.get('/catalogo', async (req, res, next) => {
   try {
     const catalogo = await obtenerTrailerflix();
-    res.json(catalogo);
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const total = catalogo.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    const startIndex = (page - 1) * limit;
+    const paginatedItems = catalogo.slice(startIndex, startIndex + limit);
+
+    res.json({
+      page,
+      limit,
+      total,
+      totalPages,
+      data: paginatedItems
+    });
   } catch (err) {
-    res.status(500).json({ error: 'no se pudo leer la base de datos' });
+    next(err);
   }
 });
 
 // 2. GET /titulo/:title -> Búsqueda parcial por título
-app.get('/titulo/:title', async (req, res) => {
+app.get('/titulo/:title', async (req, res, next) => {
   try {
     const catalogo = await obtenerTrailerflix();
     // convertimos la busqueda en minusculas
@@ -61,12 +74,12 @@ app.get('/titulo/:title', async (req, res) => {
     }
     res.json(resultados);
   } catch (err) {
-    res.status(500).json({ error: 'no se pudo leer la base de datos' });
+    next(err);
   }
 });
 
 // 3. GET /categoria/:cat -> Filtrar por categoría (Serie o Película)
-app.get('/categoria/:cat', async (req, res) => {
+app.get('/categoria/:cat', async (req, res, next) => {
     try {
         const { cat } = req.params;
         const catalogo = await obtenerTrailerflix();
@@ -86,7 +99,7 @@ app.get('/categoria/:cat', async (req, res) => {
 
         res.json(resultados);
     } catch (error) {
-        res.status(500).json({ error: 'Error al filtrar por categoría' });
+        next(error);
     }
 });
 
@@ -96,7 +109,7 @@ app.get('/categoria/:cat', async (req, res) => {
 
 
 // 4. GET /reparto/:act -> Filtrar por actor/actriz (devuelve solo titulo y reparto)
-app.get('/reparto/:act', async (req, res) => {
+app.get('/reparto/:act', async (req, res, next) => {
     try {
         const { act } = req.params;
         const catalogo = await obtenerTrailerflix();
@@ -116,12 +129,12 @@ app.get('/reparto/:act', async (req, res) => {
 
         res.json(respuesta);
     } catch (error) {
-        res.status(500).json({ error: 'Error al filtrar por reparto' });
+        next(error);
     }
 });
 
 // 5. GET /trailer/:id -> Obtener tráiler con operador condicional
-app.get('/trailer/:id', async (req, res) => {
+app.get('/trailer/:id', async (req, res, next) => {
     try {
         const idParam = parseInt(req.params.id) || req.params.id;
         const catalogo = await obtenerTrailerflix();
@@ -142,7 +155,7 @@ app.get('/trailer/:id', async (req, res) => {
             trailer: item.trailer
         });
     } catch (error) {
-        res.status(500).json({ error: 'Error al buscar el tráiler' });
+        next(error);
     }
 });
 
@@ -152,6 +165,13 @@ app.get('/trailer/:id', async (req, res) => {
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Ruta no encontrada' });
+});
+
+app.use((err, req, res, next) => {
+  console.error('Error global:', err.message);
+  res.status(err.status || 500).json({
+    error: err.message || 'Error interno del servidor'
+  });
 });
 
 app.listen(PORT, () => {

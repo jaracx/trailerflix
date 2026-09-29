@@ -1,23 +1,29 @@
 # Trailerflix API
 
-Una pequeña API REST para consultar un catálogo de series y películas con información básica y enlaces a trailers.
+API REST para gestionar contenido multimedia con autenticación JWT, MongoDB y Express.
 
 ## Descripción
 
 Este proyecto permite:
 
-- Consultar todo el catálogo
-- Buscar contenido por título
-- Filtrar por categoría
-- Buscar por actor o actriz
-- Obtener el trailer de un elemento por su ID
+- consultar catálogo paginado
+- buscar contenido por título
+- filtrar por categoría
+- buscar por actor o actriz
+- obtener el trailer asociado
+- registrar e iniciar sesión con JWT
+- proteger rutas privadas con middleware
+- gestionar películas con CRUD
 
 ## Tecnologías
 
 - Node.js
 - Express
-- JavaScript
-- JSON como base de datos local
+- MongoDB
+- Mongoose
+- JWT
+- bcryptjs
+- dotenv
 
 ## Estructura del proyecto
 
@@ -26,135 +32,152 @@ trailerfix/
 ├── app.js
 ├── package.json
 ├── README.md
-├── database/
-│   └── trailerfix.json
-├── .env
+├── .env.example
 ├── .gitignore
-└── node_modules/
+├── database/
+│   └── trailerflix.json
+├── src/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   └── routes/
+└── notes/
 ```
 
 ## Requisitos
 
-- Node.js instalado
-- npm instalado
+- Node.js 18+
+- MongoDB en ejecución local o Atlas
+- npm
 
 ## Instalación
 
-1. Clona el repositorio:
-
-```bash
-git clone <url-del-repositorio>
-cd trailerfix
-```
-
-2. Instala las dependencias:
-
 ```bash
 npm install
+cp .env.example .env
+```
+
+Completar `.env` con tus valores reales:
+
+```env
+PORT=3008
+DATABASE_PATH=database/trailerflix.json
+JWT_SECRET=tu_clave_secreta
 ```
 
 ## Ejecución
-
-Inicia la API con:
 
 ```bash
 node app.js
 ```
 
-La aplicación correrá por defecto en:
+La API quedará disponible en:
 
 ```bash
 http://localhost:3008
 ```
 
-## Endpoints disponibles
+## Endpoints
 
-### GET /
-Devuelve un mensaje de bienvenida.
+### Auth
 
-### GET /catalogo
-Devuelve todo el catálogo.
-
-### GET /titulo/:title
-Busca elementos por título, usando coincidencia parcial.
-
-Ejemplo:
-
-```bash
-http://localhost:3008/titulo/back
-```
-
-### GET /categoria/:cat
-Filtra por categoría: `Película` o `Serie`.
-
-Ejemplo:
-
-```bash
-http://localhost:3008/categoria/pelicula
-```
-
-### GET /reparto/:act
-Busca por actor o actriz.
-
-Ejemplo:
-
-```bash
-http://localhost:3008/reparto/Robert
-```
-
-### GET /trailer/:id
-Devuelve el trailer asociado a un ID.
-
-Ejemplo:
-
-```bash
-http://localhost:3008/trailer/1
-```
-
-## Base de datos
-
-La información se guarda en:
-
-```bash
-database/trailerfix.json
-```
-
-Cada elemento tiene este formato:
+#### POST /auth/register
+Registra un usuario nuevo.
 
 ```json
 {
-  "id": 1,
-  "titulo": "Back to the Future",
-  "categoria": "Película",
-  "gen": "Ciencia Ficción",
-  "reparto": "Michael J. Fox, Christopher Lloyd",
-  "trailer": "https://www.youtube.com/watch?v=qvsgGtivCgs"
+  "nombre": "Ana",
+  "email": "ana@mail.com",
+  "password": "123456"
 }
 ```
 
-## Git y GitHub
+#### POST /auth/login
+Inicia sesión y devuelve un token JWT.
 
-Este proyecto es ideal para practicar con Git y GitHub:
+```json
+{
+  "email": "ana@mail.com",
+  "password": "123456"
+}
+```
 
-- `git init` para inicializar el repositorio
-- `git add .` para preparar cambios
-- `git commit -m "Inicializa proyecto"` para guardar versiones
-- `git branch` para crear ramas
-- `git checkout -b feature/nueva-ruta` para trabajar en una rama
-- `git push origin main` para subir al repositorio remoto
+#### GET /auth/me
+Devuelve el perfil del usuario autenticado.
 
-## Recomendaciones para trabajar en equipo
+Headers:
 
-- Crear una rama por cada tarea o funcionalidad
-- Hacer commits cortos y descriptivos
-- Revisar cambios antes de hacer merge
-- Usar pull requests para combinar trabajo
+```http
+Authorization: Bearer <token>
+```
 
-## Autores
+### Películas
 
-- Franco Jara
-- Candela Barros
+#### GET /peliculas
+Devuelve las películas protegidas por autenticación.
 
-## Licencia
+#### GET /peliculas/:id
+Devuelve una película por ID.
 
-Este proyecto se encuentra bajo licencia MIT.
+#### POST /peliculas
+Crea una nueva película.
+
+#### PUT /peliculas/:id
+Actualiza una película.
+
+#### DELETE /peliculas/:id
+Elimina una película.
+
+#### GET /catalogo?page=1&limit=10
+Devuelve el catálogo paginado.
+
+### Endpoints legacy del proyecto base
+
+#### GET /
+Muestra mensaje de bienvenida.
+
+#### GET /titulo/:title
+Busca por título.
+
+#### GET /categoria/:cat
+Busca por categoría.
+
+#### GET /reparto/:act
+Busca por actor o actriz.
+
+#### GET /trailer/:id
+Devuelve el trailer de un contenido por ID.
+
+## Seguridad
+
+- Contraseñas encriptadas con bcryptjs
+- JWT para autenticación
+- rutas protegidas con middleware
+- secretos almacenados en `.env`
+- archivo `.env.example` como plantilla
+
+## Testing recomendado
+
+Usar Postman, Thunder Client o Insomnia para probar:
+
+- registro válido
+- login válido e inválido
+- acceso con token correcto/incorrecto
+- creación de película
+- actualización y eliminación
+- paginación del catálogo
+
+## GitHub y ramas
+
+El proyecto se trabaja en la rama `backend-pro` como proyecto profesional y de aprendizaje, mientras la rama `main` puede seguir el uso académico de la materia.
+
+## Estado del proyecto
+
+El backend ya tiene una base sólida para seguir creciendo con:
+- autenticación
+- validaciones
+- seguridad
+- mejores prácticas
+- documentación clara
+- testing profesional
