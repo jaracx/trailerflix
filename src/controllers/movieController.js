@@ -1,4 +1,5 @@
 const Movie = require('../models/Movie');
+const { validateMovieInput, sanitizeMoviePayload } = require('../services/movieValidation');
 
 const getMovies = async (req, res) => {
   try {
@@ -33,19 +34,14 @@ const getMovieById = async (req, res) => {
 
 const createMovie = async (req, res) => {
   try {
-    const { titulo, categoria, genero, reparto, trailer } = req.body;
+    const validation = validateMovieInput(req.body);
 
-    if (!titulo || !categoria) {
-      return res.status(400).json({ message: 'Título y categoría son obligatorios' });
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
     }
 
-    const nuevaPelicula = await Movie.create({
-      titulo,
-      categoria,
-      genero,
-      reparto,
-      trailer
-    });
+    const payload = sanitizeMoviePayload(req.body);
+    const nuevaPelicula = await Movie.create(payload);
 
     res.status(201).json({
       message: 'Película creada correctamente',
@@ -66,7 +62,13 @@ const updateMovie = async (req, res) => {
       return res.status(400).json({ message: 'El ID es obligatorio' });
     }
 
-    const movieActualizada = await Movie.findByIdAndUpdate(id, datos, {
+    const validation = validateMovieInput(datos, { partial: true });
+    if (!validation.valid) {
+      return res.status(400).json({ message: validation.message });
+    }
+
+    const payload = sanitizeMoviePayload(datos);
+    const movieActualizada = await Movie.findByIdAndUpdate(id, payload, {
       new: true,
       runValidators: true
     });
